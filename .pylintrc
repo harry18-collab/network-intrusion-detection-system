@@ -1,0 +1,2 @@
+[MESSAGES CONTROL]
+disable=logging-not-lazy,logging-format-interpolation,logging-fstring-interpolation

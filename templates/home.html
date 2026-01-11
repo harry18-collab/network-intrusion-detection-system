@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="hero-section">
+    <div class="container text-center">
+        <h1 class="display-4 mb-4"><i class="fas fa-shield-alt"></i> Network Security</h1>
+        <p class="lead mb-4">Advanced AI-powered phishing detection system to protect your organization</p>
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <a href="/predict-ui" class="btn btn-primary btn-lg me-3"><i class="fas fa-search"></i> Start Detection</a>
+                <a href="/train-ui" class="btn btn-outline-light btn-lg"><i class="fas fa-cog"></i> Train Model</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="py-5">
+    <div class="container">
+        <div class="row text-center mb-5">
+            <div class="col-12">
+                <h2>Key Features</h2>
+                <p class="text-muted">Comprehensive phishing detection capabilities</p>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 text-center p-4">
+                    <i class="fas fa-brain feature-icon"></i>
+                    <h5>AI-Powered Detection</h5>
+                    <p class="text-muted">Advanced machine learning algorithms to identify phishing attempts with high accuracy</p>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 text-center p-4">
+                    <i class="fas fa-upload feature-icon"></i>
+                    <h5>Bulk Processing</h5>
+                    <p class="text-muted">Upload CSV files to analyze multiple URLs or data points simultaneously</p>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 text-center p-4">
+                    <i class="fas fa-chart-line feature-icon"></i>
+                    <h5>Real-time Results</h5>
+                    <p class="text-muted">Get instant predictions with detailed analysis and confidence scores</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="bg-light py-5">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-6">
+                <h3>How It Works</h3>
+                <ol class="list-unstyled">
+                    <li class="mb-3"><i class="fas fa-upload text-primary me-2"></i> <strong>Upload:</strong> Submit your CSV file with network data</li>
+                    <li class="mb-3"><i class="fas fa-cogs text-primary me-2"></i> <strong>Analyze:</strong> Our AI model processes the data</li>
+                    <li class="mb-3"><i class="fas fa-chart-bar text-primary me-2"></i> <strong>Results:</strong> View detailed predictions and insights</li>
+                </ol>
+            </div>
+            <div class="col-md-6 text-center">
+                <i class="fas fa-network-wired" style="font-size: 8rem; color: #667eea; opacity: 0.7;"></i>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

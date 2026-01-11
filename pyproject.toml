@@ -1,0 +1,4 @@
+[tool.pylance]
+reportMissingImports = false
+reportMissingTypeStubs = false
+reportGeneralTypeIssues = false

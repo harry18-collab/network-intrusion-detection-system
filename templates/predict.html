@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+
+{% block title %}Phishing Detection - Network Security{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><i class="fas fa-search"></i> Phishing Detection</h4>
+                </div>
+                <div class="card-body">
+                    <form id="uploadForm" enctype="multipart/form-data">
+                        <div class="upload-area mb-4" id="uploadArea">
+                            <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
+                            <h5>Upload CSV File</h5>
+                            <p class="text-muted">Drag and drop your CSV file here or click to browse</p>
+                            <input type="file" id="fileInput" name="file" accept=".csv" class="d-none" required>
+                            <button type="button" class="btn btn-outline-primary" onclick="document.getElementById('fileInput').click()">
+                                <i class="fas fa-folder-open"></i> Choose File
+                            </button>
+                        </div>
+                        
+                        <div id="fileInfo" class="alert alert-info d-none">
+                            <i class="fas fa-file-csv"></i> <span id="fileName"></span>
+                            <small class="text-muted d-block">File size: <span id="fileSize"></span></small>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg" id="analyzeBtn" disabled>
+                                <i class="fas fa-search"></i> Analyze for Phishing
+                            </button>
+                        </div>
+                    </form>
+
+                    <div id="loadingDiv" class="text-center py-4 d-none">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2">Analyzing your data...</p>
+                    </div>
+
+                    <div id="errorDiv" class="alert alert-danger d-none">
+                        <i class="fas fa-exclamation-triangle"></i> <span id="errorMessage"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-info-circle"></i> File Requirements</h5>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-unstyled mb-0">
+                            <li><i class="fas fa-check text-success me-2"></i> File format: CSV only</li>
+                            <li><i class="fas fa-check text-success me-2"></i> Maximum size: 10MB</li>
+                            <li><i class="fas fa-check text-success me-2"></i> Must contain network security features</li>
+                            <li><i class="fas fa-check text-success me-2"></i> No empty files allowed</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const fileInput = document.getElementById('fileInput');
+    const uploadArea = document.getElementById('uploadArea');
+    const fileInfo = document.getElementById('fileInfo');
+    const analyzeBtn = document.getElementById('analyzeBtn');
+    const uploadForm = document.getElementById('uploadForm');
+    const loadingDiv = document.getElementById('loadingDiv');
+    const errorDiv = document.getElementById('errorDiv');
+
+    // Drag and drop functionality
+    uploadArea.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        uploadArea.style.borderColor = '#667eea';
+        uploadArea.style.backgroundColor = '#f8f9fa';
+    });
+
+    uploadArea.addEventListener('dragleave', function(e) {
+        e.preventDefault();
+        uploadArea.style.borderColor = '#dee2e6';
+        uploadArea.style.backgroundColor = '';
+    });
+
+    uploadArea.addEventListener('drop', function(e) {
+        e.preventDefault();
+        uploadArea.style.borderColor = '#dee2e6';
+        uploadArea.style.backgroundColor = '';
+        
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            fileInput.files = files;
+            handleFileSelect();
+        }
+    });
+
+    fileInput.addEventListener('change', handleFileSelect);
+
+    function handleFileSelect() {
+        const file = fileInput.files[0];
+        if (file) {
+            if (file.name.endsWith('.csv')) {
+                document.getElementById('fileName').textContent = file.name;
+                document.getElementById('fileSize').textContent = formatFileSize(file.size);
+                fileInfo.classList.remove('d-none');
+                analyzeBtn.disabled = false;
+                errorDiv.classList.add('d-none');
+            } else {
+                showError('Please select a CSV file only.');
+                fileInput.value = '';
+            }
+        }
+    }
+
+    uploadForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData();
+        formData.append('file', fileInput.files[0]);
+
+        loadingDiv.classList.remove('d-none');
+        analyzeBtn.disabled = true;
+        errorDiv.classList.add('d-none');
+
+        fetch('/predict', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(err => Promise.reject(err));
+            }
+            return response.text();
+        })
+        .then(html => {
+            document.body.innerHTML = html;
+        })
+        .catch(error => {
+            loadingDiv.classList.add('d-none');
+            analyzeBtn.disabled = false;
+            showError(error.detail || 'An error occurred while processing your file.');
+        });
+    });
+
+    function showError(message) {
+        document.getElementById('errorMessage').textContent = message;
+        errorDiv.classList.remove('d-none');
+    }
+
+    function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+});
+</script>
+{% endblock %}

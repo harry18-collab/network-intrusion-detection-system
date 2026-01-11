@@ -1,0 +1,374 @@
+{% extends "base.html" %}
+
+{% block title %}Model Evaluation - Network Security{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h4 class="mb-0"><i class="fas fa-chart-line"></i> Model Performance Evaluation</h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>Evaluation:</strong> This will test the trained model against validation data to measure accuracy and performance metrics.
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <button id="evaluateBtn" class="btn btn-info btn-lg w-100">
+                                <i class="fas fa-chart-bar"></i> Evaluate with Default Test Data
+                            </button>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header bg-secondary text-white">
+                                    <h6 class="mb-0"><i class="fas fa-upload"></i> Evaluate with Custom CSV</h6>
+                                </div>
+                                <div class="card-body">
+                                    <form id="fileEvalForm" enctype="multipart/form-data">
+                                        <div class="mb-3">
+                                            <input type="file" class="form-control" id="evalFile" accept=".csv" required>
+                                            <div class="form-text">Upload CSV file (features only)</div>
+                                        </div>
+                                        <button type="submit" class="btn btn-secondary w-100">
+                                            <i class="fas fa-file-csv"></i> Evaluate File
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="loadingDiv" class="text-center py-4 d-none">
+                        <div class="spinner-border text-info" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2">Evaluating model performance...</p>
+                    </div>
+
+                    <div id="resultsDiv" class="d-none">
+                        <h5 class="mb-3"><i class="fas fa-trophy"></i> Performance Metrics</h5>
+                        
+                        <div class="row mb-4">
+                            <div class="col-md-3">
+                                <div class="card bg-success text-white text-center">
+                                    <div class="card-body">
+                                        <i class="fas fa-bullseye fa-2x mb-2"></i>
+                                        <h6>Accuracy</h6>
+                                        <h4 id="accuracyValue">-</h4>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card bg-primary text-white text-center">
+                                    <div class="card-body">
+                                        <i class="fas fa-crosshairs fa-2x mb-2"></i>
+                                        <h6>Precision</h6>
+                                        <h4 id="precisionValue">-</h4>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card bg-warning text-white text-center">
+                                    <div class="card-body">
+                                        <i class="fas fa-search fa-2x mb-2"></i>
+                                        <h6>Recall</h6>
+                                        <h4 id="recallValue">-</h4>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card bg-info text-white text-center">
+                                    <div class="card-body">
+                                        <i class="fas fa-balance-scale fa-2x mb-2"></i>
+                                        <h6>F1-Score</h6>
+                                        <h4 id="f1Value">-</h4>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h6 class="mb-0"><i class="fas fa-table"></i> Test Results Summary</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <table class="table table-sm">
+                                            <tr>
+                                                <td><strong>Total Test Samples:</strong></td>
+                                                <td id="totalSamples">-</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Correct Predictions:</strong></td>
+                                                <td id="correctPreds">-</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Incorrect Predictions:</strong></td>
+                                                <td id="incorrectPreds">-</td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h6 class="mb-0"><i class="fas fa-shield-alt"></i> Actual Test Data</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <table class="table table-sm">
+                                            <tr>
+                                                <td><strong>Safe Entries:</strong></td>
+                                                <td><span class="badge bg-success" id="actualSafe">-</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Threat Entries:</strong></td>
+                                                <td><span class="badge bg-danger" id="actualThreats">-</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Threat Rate:</strong></td>
+                                                <td><span class="badge bg-warning" id="actualThreatRate">-</span></td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h6 class="mb-0"><i class="fas fa-robot"></i> Model Predictions</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <table class="table table-sm">
+                                            <tr>
+                                                <td><strong>Predicted Safe:</strong></td>
+                                                <td><span class="badge bg-success" id="predSafe">-</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Predicted Threats:</strong></td>
+                                                <td><span class="badge bg-danger" id="predThreats">-</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Predicted Rate:</strong></td>
+                                                <td><span class="badge bg-info" id="predThreatRate">-</span></td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row mt-3">
+                            <div class="col-md-12">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h6 class="mb-0"><i class="fas fa-th"></i> Confusion Matrix</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div id="confusionMatrix" class="text-center">
+                                            <table class="table table-bordered table-sm mx-auto" style="width: auto;">
+                                                <thead>
+                                                    <tr>
+                                                        <th></th>
+                                                        <th>Predicted Safe</th>
+                                                        <th>Predicted Threat</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        <th>Actual Safe</th>
+                                                        <td id="tn" class="bg-success text-white">-</td>
+                                                        <td id="fp" class="bg-warning text-white">-</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th>Actual Threat</th>
+                                                        <td id="fn" class="bg-warning text-white">-</td>
+                                                        <td id="tp" class="bg-success text-white">-</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="errorDiv" class="alert alert-danger d-none">
+                        <i class="fas fa-exclamation-triangle"></i> <span id="errorMessage"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-lightbulb"></i> Understanding the Metrics</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <ul class="list-unstyled">
+                                    <li><strong>Accuracy:</strong> Overall correctness of predictions</li>
+                                    <li><strong>Precision:</strong> How many predicted threats were actually threats</li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <ul class="list-unstyled">
+                                    <li><strong>Recall:</strong> How many actual threats were correctly identified</li>
+                                    <li><strong>F1-Score:</strong> Balanced measure of precision and recall</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const evaluateBtn = document.getElementById('evaluateBtn');
+    const customEvalForm = document.getElementById('customEvalForm');
+    const loadingDiv = document.getElementById('loadingDiv');
+    const resultsDiv = document.getElementById('resultsDiv');
+    const errorDiv = document.getElementById('errorDiv');
+
+    evaluateBtn.addEventListener('click', function() {
+        evaluateModel();
+    });
+
+    const fileEvalForm = document.getElementById('fileEvalForm');
+    
+    fileEvalForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        evaluateFile();
+    });
+
+    function evaluateModel() {
+        evaluateBtn.disabled = true;
+        loadingDiv.classList.remove('d-none');
+        resultsDiv.classList.add('d-none');
+        errorDiv.classList.add('d-none');
+
+        fetch('/evaluate', {
+            method: 'GET'
+        })
+        .then(response => {
+            if (response.ok) {
+                return response.json();
+            } else {
+                return response.json().then(err => Promise.reject(err));
+            }
+        })
+        .then(data => {
+            loadingDiv.classList.add('d-none');
+            displayResults(data);
+            resultsDiv.classList.remove('d-none');
+            evaluateBtn.disabled = false;
+        })
+        .catch(error => {
+            loadingDiv.classList.add('d-none');
+            showError(error.detail || 'Evaluation failed');
+            evaluateBtn.disabled = false;
+        });
+    }
+
+    function displayResults(data, filename = null) {
+        // Show filename if custom CSV was used
+        if (filename) {
+            const fileInfo = document.createElement('div');
+            fileInfo.className = 'alert alert-success mb-3';
+            fileInfo.innerHTML = `<i class="fas fa-file-csv"></i> <strong>Evaluated File:</strong> ${filename} | <strong>Target Column:</strong> ${data.target_column || 'Auto-detected'}`;
+            resultsDiv.insertBefore(fileInfo, resultsDiv.firstChild);
+        }
+        // Display metrics
+        document.getElementById('accuracyValue').textContent = (data.accuracy * 100).toFixed(1) + '%';
+        document.getElementById('precisionValue').textContent = (data.precision * 100).toFixed(1) + '%';
+        document.getElementById('recallValue').textContent = (data.recall * 100).toFixed(1) + '%';
+        document.getElementById('f1Value').textContent = (data.f1_score * 100).toFixed(1) + '%';
+
+        // Display summary
+        document.getElementById('totalSamples').textContent = data.test_samples;
+        document.getElementById('correctPreds').textContent = data.correct_predictions;
+        document.getElementById('incorrectPreds').textContent = data.test_samples - data.correct_predictions;
+        
+        // Display actual test data counts
+        document.getElementById('actualSafe').textContent = data.actual_safe_count;
+        document.getElementById('actualThreats').textContent = data.actual_threat_count;
+        document.getElementById('actualThreatRate').textContent = data.actual_threat_rate + '%';
+        
+        // Display prediction counts
+        document.getElementById('predSafe').textContent = data.predicted_safe_count;
+        document.getElementById('predThreats').textContent = data.predicted_threat_count;
+        document.getElementById('predThreatRate').textContent = data.predicted_threat_rate + '%';
+
+        // Display confusion matrix
+        const cm = data.confusion_matrix;
+        if (cm.length === 2 && cm[0].length === 2) {
+            document.getElementById('tn').textContent = cm[0][0]; // True Negative
+            document.getElementById('fp').textContent = cm[0][1]; // False Positive
+            document.getElementById('fn').textContent = cm[1][0]; // False Negative
+            document.getElementById('tp').textContent = cm[1][1]; // True Positive
+        }
+    }
+
+    function evaluateFile() {
+        const fileInput = document.getElementById('evalFile');
+        const file = fileInput.files[0];
+        
+        if (!file) {
+            showError('Please select a CSV file');
+            return;
+        }
+        
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        loadingDiv.classList.remove('d-none');
+        resultsDiv.classList.add('d-none');
+        errorDiv.classList.add('d-none');
+        
+        fetch('/evaluate-file', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            loadingDiv.classList.add('d-none');
+            showFileResults(data);
+        })
+        .catch(error => {
+            loadingDiv.classList.add('d-none');
+            showError('File evaluation failed');
+        });
+    }
+    
+    function showFileResults(data) {
+        const resultHtml = `
+            <div class="alert alert-success">
+                <h5>📁 ${data.filename}</h5>
+                <p><strong>Total Samples:</strong> ${data.total_samples}</p>
+                <p><strong>Safe:</strong> ${data.safe_count} (${data.safe_percentage}%)</p>
+                <p><strong>Threats:</strong> ${data.threat_count} (${data.threat_percentage}%)</p>
+            </div>
+        `;
+        resultsDiv.innerHTML = resultHtml;
+        resultsDiv.classList.remove('d-none');
+    }
+
+    function showError(message) {
+        document.getElementById('errorMessage').textContent = message;
+        errorDiv.classList.remove('d-none');
+    }
+});
+</script>
+{% endblock %}
